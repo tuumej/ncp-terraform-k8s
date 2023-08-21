@@ -10,6 +10,7 @@ resource "ncloud_server" "tf_web_server" {
   server_image_product_code = data.ncloud_server_image.server_image.id
   server_product_code       = data.ncloud_server_product.product.id
   login_key_name = ncloud_login_key.login_key.key_name
+  description = "k8s Control Plane Server"
 }
 
 resource "ncloud_server" "tf_was_server" {
@@ -18,6 +19,7 @@ resource "ncloud_server" "tf_was_server" {
   server_image_product_code = data.ncloud_server_image.server_image.id
   server_product_code       = data.ncloud_server_product.product.id
   login_key_name = ncloud_login_key.login_key.key_name
+  description = "k8s Worker Node Server"
 }
 
 # Server - detail data
@@ -51,15 +53,4 @@ data "ncloud_server_product" "product" {
     name   = "product_type"
     values = ["HICPU"]
   }
-}
-
-# Public IP
-resource "ncloud_public_ip" "public_ip_web" {
-  server_instance_no = ncloud_server.tf_web_server.id
-  description        = "for tf_web_server public ip"
-}
-
-resource "ncloud_public_ip" "public_ip_was" {
-  server_instance_no = ncloud_server.tf_was_server.id
-  description        = "for tf_was_server public ip"
 }

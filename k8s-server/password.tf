@@ -5,7 +5,7 @@ data "ncloud_root_password" "tf_web_server" {
 }
 
 data "ncloud_root_password" "tf_was_server" {
-  server_instance_no = ncloud_server.tf_was_server.instance_no # ${ncloud_server.vm.id}
+  server_instance_no = ncloud_server.tf_web_server.instance_no # ${ncloud_server.vm.id}
   private_key = ncloud_login_key.login_key.private_key # ${ncloud_login_key.key.private_key}
 }
 

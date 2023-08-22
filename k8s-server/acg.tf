@@ -1,18 +1,24 @@
 # ACG
-resource "ncloud_access_control_group" "tf_bation_acg" {
-  name = "tf-bation-acg-01"
-  description = "Access Control Group for tf-bation"
+resource "ncloud_access_control_group" "tf_k8s_acg" {
+  name = "tf-k8s-acg-01"
+  description = "Access Control Group for tf-k8s"
   vpc_no = ncloud_vpc.vpc.id
 }
 
 # ACG Rule
-resource "ncloud_access_control_group_rule" "tf_bation_acg_rule" {
-  access_control_group_no = ncloud_access_control_group.tf_bation_acg.id
+resource "ncloud_access_control_group_rule" "tf_k8s_acg_rule" {
+  access_control_group_no = ncloud_access_control_group.tf_k8s_acg.id
 
   inbound {
     protocol    = "TCP"
     ip_block    = "106.245.144.98/32"
     port_range  = "22"
+    description = "accept 22 port for admin"
+  }
+  inbound {
+    protocol    = "TCP"
+    ip_block    = "106.245.144.98/32"
+    port_range  = "30050"
     description = "accept 22 port for admin"
   }
   inbound {

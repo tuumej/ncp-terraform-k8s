@@ -19,7 +19,19 @@ resource "ncloud_access_control_group_rule" "tf_k8s_acg_rule" {
     protocol    = "TCP"
     ip_block    = "106.245.144.98/32"
     port_range  = "30050"
-    description = "accept 22 port for admin"
+    description = "accept 30050 port for nginx"
+  }
+  inbound {
+    protocol    = "TCP"
+    ip_block    = "106.245.144.98/32"
+    port_range  = "30000"
+    description = "accept 30000 port for mysql"
+  }
+  inbound {
+    protocol    = "TCP"
+    ip_block    = "106.245.144.98/32"
+    port_range  = "8080"
+    description = "accept 8080 port for tomcat"
   }
   inbound {
     protocol    = "TCP"

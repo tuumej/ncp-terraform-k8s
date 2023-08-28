@@ -19,7 +19,7 @@ resource "ncloud_server" "tf_master_server" {
 
 resource "ncloud_server" "tf_worker_server" {
   subnet_no = ncloud_subnet.tf_public_subnet_01.id
-  name = "tf-workder-server"
+  name = "tf-worker-server"
   server_image_product_code = data.ncloud_server_image.server_image.id
   server_product_code       = data.ncloud_server_product.product_worker.id
   login_key_name = ncloud_login_key.login_key.key_name
@@ -30,18 +30,18 @@ resource "ncloud_server" "tf_worker_server" {
   description = "k8s Worker Node Server"
 }
 
-resource "ncloud_server" "tf_worker_server_02" {
-  subnet_no = ncloud_subnet.tf_public_subnet_01.id
-  name = "tf-worker-server-02"
-  server_image_product_code = data.ncloud_server_image.server_image.id
-  server_product_code       = data.ncloud_server_product.product_worker.id
-  login_key_name = ncloud_login_key.login_key.key_name
-  network_interface {
-    network_interface_no = ncloud_network_interface.tf_worker_nic_02.id
-    order = 0
-  }
-  description = "k8s Worker Node Server 02"
-}
+#resource "ncloud_server" "tf_worker_server_02" {
+#  subnet_no = ncloud_subnet.tf_public_subnet_01.id
+#  name = "tf-worker-server-02"
+#  server_image_product_code = data.ncloud_server_image.server_image.id
+#  server_product_code       = data.ncloud_server_product.product_worker.id
+#  login_key_name = ncloud_login_key.login_key.key_name
+#  network_interface {
+#    network_interface_no = ncloud_network_interface.tf_worker_nic_02.id
+#    order = 0
+#  }
+#  description = "k8s Worker Node Server 02"
+#}
 
 # Public IP
 resource "ncloud_public_ip" "public_ip_worker" {
@@ -54,10 +54,10 @@ resource "ncloud_public_ip" "public_ip_master" {
   description        = "for tf_master_server public ip"
 }
 
-resource "ncloud_public_ip" "public_ip_worker_02" {
-  server_instance_no = ncloud_server.tf_worker_server_02.id
-  description        = "for tf_worker_server_02 public ip"
-}
+#resource "ncloud_public_ip" "public_ip_worker_02" {
+#  server_instance_no = ncloud_server.tf_worker_server_02.id
+#  description        = "for tf_worker_server_02 public ip"
+#}
 
 # Server - detail data
 data "ncloud_server_image" "server_image" {

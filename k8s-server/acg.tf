@@ -8,7 +8,13 @@ resource "ncloud_access_control_group" "tf_k8s_acg" {
 # ACG Rule
 resource "ncloud_access_control_group_rule" "tf_k8s_acg_rule" {
   access_control_group_no = ncloud_access_control_group.tf_k8s_acg.id
-
+ 
+  inbound {
+    protocol    = "TCP"
+    ip_block    = "222.122.76.4/32"
+    port_range  = "22"
+    description = "accept 22 port for admin"
+  }
   inbound {
     protocol    = "TCP"
     ip_block    = "106.245.144.98/32"

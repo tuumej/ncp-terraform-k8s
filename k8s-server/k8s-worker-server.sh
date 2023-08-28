@@ -58,3 +58,9 @@ sudo systemctl restart containerd
 # 03. kubeadm init 을 실행하고 출력되는 명령어 url를 확인 후 실행할 부분
 # kubeadm join 172.16.1.7:6443 --token wcc5n5.6t7e4grzlfp1k6k8 \
 #        --discovery-token-ca-cert-hash sha256:b1dc1c9fdaec48c7d43e2b951d6f56d349604d17f7861c7c867d50f4636be84c
+
+
+#
+#mkdir -p $HOME/.kube
+#vi $HOME/.kube/config # master server 의 $HOME/.kube/config
+#sudo chown $(id -u):$(id -g) $HOME/.kube/config

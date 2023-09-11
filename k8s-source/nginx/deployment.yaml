@@ -17,10 +17,10 @@ kind: Deployment
 metadata:
   name: nginx-deployment-01
 spec:
+  replicas: 2 # tells deployment to run 2 pods matching the template
   selector:
     matchLabels:
       app: nginx-deployment-01
-  replicas: 2 # tells deployment to run 2 pods matching the template
   template:
     metadata:
       labels:
@@ -29,36 +29,55 @@ spec:
       containers:
       - name: nginx-pod
         image: nginx:1.14.2
+        imagePullPolicy: Always
+        #terminationGracePeriodSeconds: 30
         ports:
         - containerPort: 80
         volumeMounts:
-        - name: html  # /usr/share/nginx/html/index.html
+        # volumeMounts1
+        - name: html 
           mountPath: /usr/share/nginx/html
-        - name: conf-nginx # /etc/nginx/nginx.conf
+        # volumeMounts2
+        - name: conf-nginx 
           mountPath: /etc/nginx/nginx.conf
           readOnly: true
           subPath: nginx.conf
-        - name: confd-conf # /etc/nginx/conf.d/default.conf
+        # volumeMounts3
+        - name: confd-conf 
           mountPath: /etc/nginx/conf.d/default.conf
           readOnly: true
           subPath: default.conf
+        # volumeMounts4
+        - name: varlog
+          mountPath: /var/log/nginx
+          subPath: nginx
+        ports:
+        - containerPort: 80
       volumes:
+      # volume1
       - name: html
         hostPath:
           path: /usr/share/nginx/html
           type: Directory
+      # volume2
       - name: conf-nginx
         configMap:
           name: nginx-conf
           items:
           - key: nginx-conf
             path: nginx.conf
+      # volume3
       - name: confd-conf
         configMap:
           name: confd-conf
           items:
           - key: confd-conf
             path: default.conf
+      # volume4
+      - name: varlog
+        hostPath:
+          path: /var/log/containers
+
     
 #---
 #apiVersion: v1
@@ -170,7 +189,7 @@ metadata:
 data:
   confd-conf: |
     upstream tomcat {
-      server 10.99.42.204:8080;
+      server 10.102.63.140:8080;
     }
     server {
       listen       80;

@@ -1,3 +1,17 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: tomcat-service-01
+spec:
+  selector:
+    app: tomcat-deployment-01
+  type: NodePort
+  ports:
+  - port: 8080
+    targetPort: 8080
+    nodePort: 30080
+
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -13,21 +27,167 @@ spec:
         app: tomcat-deployment-01
     spec:
       containers:
-        - name: tomcat-pod
-          image: melca/default-tomcat:8.5
-          ports:
-            - containerPort: 8080
+      - name: tomcat-pod
+        image: melca/default-tomcat8.5:1.0
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 8080
+        volumeMounts:
+        - name: server-xml
+          mountPath: /usr/local/tomcat/conf/server.xml
+          readOnly: true
+          subPath: server.xml
+        - name: context-xml
+          mountPath: /usr/local/tomcat/conf/context.xml
+          readOnly: true
+          subPath: context.xml
+        - name: logging-properties
+          mountPath: /usr/local/tomcat/conf/logging.properties
+          readOnly: true
+          subPath: logging.properties
+        - name: tomcat-log
+          mountPath: /usr/local/tomcat/logs
+          subPath: tomcat
+      volumes:
+      - name: server-xml
+        configMap:
+          name: server-xml
+          items:
+          - key: server-xml
+            path: server.xml
+      - name: context-xml
+        configMap:
+          name: context-xml
+          items:
+          - key: context-xml
+            path: context.xml
+      - name: logging-properties
+        configMap:
+          name: logging-properties
+          items:
+          - key: logging-properties
+            path: logging.properties
+      - name: tomcat-log
+        hostPath:
+          path: /var/log/containers
 
 ---
 apiVersion: v1
-kind: Service
+kind: ConfigMap
 metadata:
-  name: tomcat-service-01
-spec:
-  selector:
-    app: tomcat-deployment-01
-  type: NodePort
-  ports:
-  - port: 8080
-    targetPort: 8080
-    nodePort: 32227
+  name: server-xml
+data:
+  server-xml: |
+    <?xml version="1.0" encoding="UTF-8"?>
+    
+    <Server port="8005" shutdown="SHUTDOWN">
+      <Listener className="org.apache.catalina.startup.VersionLoggerListener" />
+      <Listener className="org.apache.catalina.core.AprLifecycleListener" SSLEngine="on" />
+      <Listener className="org.apache.catalina.core.JreMemoryLeakPreventionListener" />
+      <Listener className="org.apache.catalina.mbeans.GlobalResourcesLifecycleListener" />
+      <Listener className="org.apache.catalina.core.ThreadLocalLeakPreventionListener" />
+
+      <GlobalNamingResources>
+
+        <Resource name="UserDatabase" auth="Container"
+            type="org.apache.catalina.UserDatabase"
+            description="User database that can be updated and saved"
+            factory="org.apache.catalina.users.MemoryUserDatabaseFactory"
+            pathname="conf/tomcat-users.xml" />
+      </GlobalNamingResources>
+
+      <Service name="Catalina">
+      
+        <Connector port="8080" protocol="HTTP/1.1"
+            connectionTimeout="20000"
+            redirectPort="8443"
+            maxParameterCount="1000"
+            />
+
+        <Engine name="Catalina" defaultHost="localhost">
+      
+          <Realm className="org.apache.catalina.realm.LockOutRealm">
+            <Realm className="org.apache.catalina.realm.UserDatabaseRealm"
+              resourceName="UserDatabase"/>
+          </Realm>
+      
+          <Host name="localhost"  appBase="webapps"
+              unpackWARs="true" autoDeploy="true">
+
+            <Valve className="org.apache.catalina.valves.AccessLogValve" directory="logs"
+              prefix="localhost_access_log" suffix=".txt"
+              pattern="%h %l %u %t &quot;%r&quot; %s %b" />
+      
+          </Host>
+        </Engine>
+      </Service>
+    </Server>
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: logging-properties
+data:
+  logging-properties: |    
+      handlers = 1catalina.org.apache.juli.AsyncFileHandler, 2localhost.org.apache.juli.AsyncFileHandler, 3manager.org.apache.juli.AsyncFileHandler, 4host-manager.org.apache.juli.AsyncFileHandler, java.util.logging.ConsoleHandler
+      
+      .handlers = 1catalina.org.apache.juli.AsyncFileHandler, java.util.logging.ConsoleHandler
+      
+      1catalina.org.apache.juli.AsyncFileHandler.level = ERROR
+      1catalina.org.apache.juli.AsyncFileHandler.directory = ${catalina.base}/logs/test
+      1catalina.org.apache.juli.AsyncFileHandler.prefix = catalina.
+      1catalina.org.apache.juli.AsyncFileHandler.encoding = UTF-8
+      
+      2localhost.org.apache.juli.AsyncFileHandler.level = ERROR
+      2localhost.org.apache.juli.AsyncFileHandler.directory = ${catalina.base}/logs
+      2localhost.org.apache.juli.AsyncFileHandler.prefix = localhost.
+      2localhost.org.apache.juli.AsyncFileHandler.encoding = UTF-8
+      
+      3manager.org.apache.juli.AsyncFileHandler.level = ERROR
+      3manager.org.apache.juli.AsyncFileHandler.directory = ${catalina.base}/logs
+      3manager.org.apache.juli.AsyncFileHandler.prefix = manager.
+      3manager.org.apache.juli.AsyncFileHandler.encoding = UTF-8
+      
+      4host-manager.org.apache.juli.AsyncFileHandler.level = ERROR
+      4host-manager.org.apache.juli.AsyncFileHandler.directory = ${catalina.base}/logs
+      4host-manager.org.apache.juli.AsyncFileHandler.prefix = host-manager.
+      4host-manager.org.apache.juli.AsyncFileHandler.encoding = UTF-8
+      
+      java.util.logging.ConsoleHandler.level = ERROR
+      java.util.logging.ConsoleHandler.formatter = org.apache.juli.OneLineFormatter
+      java.util.logging.ConsoleHandler.encoding = UTF-8
+      
+      org.apache.catalina.core.ContainerBase.[Catalina].[localhost].level = INFO
+      org.apache.catalina.core.ContainerBase.[Catalina].[localhost].handlers = 2localhost.org.apache.juli.AsyncFileHandler
+      
+      org.apache.catalina.core.ContainerBase.[Catalina].[localhost].[/manager].level = INFO
+      org.apache.catalina.core.ContainerBase.[Catalina].[localhost].[/manager].handlers = 3manager.org.apache.juli.AsyncFileHandler
+      
+      org.apache.catalina.core.ContainerBase.[Catalina].[localhost].[/host-manager].level = INFO
+      org.apache.catalina.core.ContainerBase.[Catalina].[localhost].[/host-manager].handlers = 4host-manager.org.apache.juli.AsyncFileHandler
+    
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: context-xml
+data:
+  context-xml: |
+      <?xml version="1.0" encoding="UTF-8"?>
+      <Context>
+          <WatchedResource>WEB-INF/web.xml</WatchedResource>
+          <WatchedResource>${catalina.base}/conf/web.xml</WatchedResource>
+
+          <Resource
+            name="jdbc/mysql"
+            auth="Container"
+            type="javax.sql.DataSource"
+            maxTotal="100"
+            maxIdle="30"
+            maxWaitMillis="10000"
+            username="root"
+            password="password"
+            driverClassName="com.mysql.jdbc.Driver"
+            url="jdbc:mysql://10.44.0.3:3306/mysql"/>
+      </Context>
